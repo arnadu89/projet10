@@ -2,9 +2,15 @@ from django.contrib import admin
 from django.urls import include, path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
+from projectmanager import views
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls')),
-    path('api/token/', TokenObtainPairView.as_view(), name='obtain_token'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='refresh_token'),
+    path('signup/', views.RegisterView.as_view(), name='sign_up'),
+    path('login/', TokenObtainPairView.as_view(), name='login'),
+    path('login/refresh/', TokenRefreshView.as_view(), name='refresh_token'),
+    path('projects/', views.ProjectListView.as_view(), name='projects_createlist'),
+    path('projects/<int:pk>', views.ProjectDetailView.as_view(), name='projects_manage'),
+    path('projects/<int:project_id>/users/', views.ProjectUserListView.as_view(), name='projects_users_createlist'),
 ]
