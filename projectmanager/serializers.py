@@ -1,5 +1,5 @@
 from rest_framework.serializers import ModelSerializer
-from projectmanager.models import Project, User
+from projectmanager.models import Contributor, Project, User
 
 
 class UserSerializer(ModelSerializer):
@@ -19,3 +19,26 @@ class ProjectSerializer(ModelSerializer):
     class Meta:
         model = Project
         fields = '__all__'
+
+    def create(self, validated_data):
+        project = super().create(validated_data)
+        user = self.context["request"].user
+        # Add User as main contributor of this project
+        Contributor.objects.create(
+            user=user,
+            project=project,
+            role='creator',
+        )
+        return project
+
+
+class ContributorSerializer(ModelSerializer):
+    class Meta:
+        model = Contributor
+        fields = ['user', 'role']
+
+
+class ContributorListUserSerializer(ModelSerializer):
+    class Meta:
+        model = Contributor
+        fields = ['user']

@@ -12,5 +12,6 @@ urlpatterns = [
     path('login/refresh/', TokenRefreshView.as_view(), name='refresh_token'),
     path('projects/', views.ProjectListView.as_view(), name='projects_createlist'),
     path('projects/<int:pk>', views.ProjectDetailView.as_view(), name='projects_manage'),
-    path('projects/<int:project_id>/users/', views.ProjectUserListView.as_view(), name='projects_users_createlist'),
+    path('projects/<int:project_id>/users/', views.ProjectContributorListCreateView.as_view(), name='projects_users_createlist'),
+    path('projects/<int:project_id>/users/<int:pk>/', views.ProjectContributorDeleteView.as_view(), name='projects_users_delete'),
 ]
