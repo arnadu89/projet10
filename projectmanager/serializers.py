@@ -15,21 +15,16 @@ class UserSerializer(ModelSerializer):
         return user
 
 
-class ProjectSerializer(ModelSerializer):
+class ProjectListSerializer(ModelSerializer):
     class Meta:
         model = Project
         fields = '__all__'
 
-    def create(self, validated_data):
-        project = super().create(validated_data)
-        user = self.context["request"].user
-        # Add User as main contributor of this project
-        Contributor.objects.create(
-            user=user,
-            project=project,
-            role='creator',
-        )
-        return project
+
+class ProjectCreateSerializer(ModelSerializer):
+    class Meta:
+        model = Project
+        fields = ['title', 'description', 'type']
 
 
 class ContributorSerializer(ModelSerializer):
