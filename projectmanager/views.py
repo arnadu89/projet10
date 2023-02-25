@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from projectmanager.serializers import *
-from projectmanager.models import Contributor, Project, User
+from projectmanager.models import Contributor, Issue, Project, User
 from projectmanager.permissions import *
 
 
@@ -37,10 +37,10 @@ class ProjectListCreateView(ListCreateAPIView):
         serializer.save(author=self.request.user)
 
 
-class ProjectDetailView(RetrieveUpdateDestroyAPIView):
+class ProjectRetrieveUpdateDeleteView(RetrieveUpdateDestroyAPIView):
     serializer_class = ProjectListSerializer
     queryset = Project.objects.all()
-    permission_classes = (IsAuthor, IsContributorReadOnly)
+    permission_classes = (IsAuthor, IsProjectContributor)
 
 
 class ProjectContributorListCreateView(ListCreateAPIView):
@@ -53,7 +53,7 @@ class ProjectContributorListCreateView(ListCreateAPIView):
         return Contributor.objects.filter(project=project_id)
 
     def get_serializer_class(self):
-        if self.request.method == 'get':
+        if self.request.method.lower() == 'get':
             return self.list_serializer_class
         return super().get_serializer_class()
 
@@ -79,3 +79,67 @@ class ProjectContributorDeleteView(DestroyAPIView):
         self.check_object_permissions(self.request, obj)
 
         return obj
+
+
+class IssueListCreateView(ListCreateAPIView):
+    serializer_class = IssueSerializer
+    create_serializer_class = IssueCreateSerializer
+    permission_classes = (IsProjectContributor,)
+
+    def get_serializer_class(self):
+        if self.request.method.lower() == 'post':
+            return self.create_serializer_class
+        return super().get_serializer_class()
+
+    def get_queryset(self):
+        project_id = self.kwargs["project_id"]
+        return Issue.objects.filter(project_id=project_id)
+
+    def perform_create(self, serializer):
+        project_id = self.kwargs["project_id"]
+        serializer.save(
+            author=self.request.user,
+            project_id=project_id,
+        )
+
+
+class IssueUpdateDeleteView(RetrieveUpdateDestroyAPIView):
+    serializer_class = IssueSerializer
+    permission_classes = (IsAuthor,)
+
+    def get_queryset(self):
+        issue_id = self.kwargs["pk"]
+        project_id = self.kwargs["project_id"]
+        author_id = self.request.user.id
+        return Issue.objects.filter(
+            id=issue_id,
+            project_id=project_id,
+            author_id=author_id,
+        )
+
+
+class CommentListCreateView(ListCreateAPIView):
+    serializer_class = CommentSerializer
+    create_serializer_class = CommentCreateSerializer
+    permission_classes = (IsProjectContributor,)
+
+    def get_serializer_class(self):
+        if self.request.method.lower() == 'post':
+            return self.create_serializer_class
+        return super().get_serializer_class()
+
+    def get_queryset(self):
+        project_id = self.kwargs["project_id"]
+        issue_id = self.kwargs["issue_id"]
+        return Comment.objects.filter(
+            issue__project_id=project_id,
+        ).filter(
+            issue_id=issue_id,
+        )
+
+    def perform_create(self, serializer):
+        issue_id = self.kwargs["issue_id"]
+        serializer.save(
+            issue_id=issue_id,
+            author=self.request.user,
+        )

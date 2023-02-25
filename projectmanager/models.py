@@ -27,9 +27,6 @@ class Project(models.Model):
     type = CharField(max_length=128)
     author = ForeignKey(User, on_delete=models.CASCADE)
 
-    def is_user_author(self, user):
-        return self.author == user
-
 
 class Contributor(models.Model):
     user = ForeignKey(User, on_delete=models.CASCADE)
@@ -48,19 +45,14 @@ class Issue(models.Model):
     status = CharField(max_length=128)
     created_time = DateTimeField(auto_now_add=True)
 
-    user = ForeignKey(User, on_delete=models.CASCADE)
+    author = ForeignKey(User, on_delete=models.CASCADE, related_name="writed_issues")
+    assignee = ForeignKey(User, on_delete=models.CASCADE, related_name="assigned_issues")
     project = ForeignKey(Project, on_delete=models.CASCADE)
-
-    def is_user_author(self, user):
-        return self.project.author == user
 
 
 class Comment(models.Model):
     description = CharField(max_length=128)
     created_time = DateTimeField(auto_now_add=True)
 
-    user = ForeignKey(User, on_delete=models.CASCADE)
+    author = ForeignKey(User, on_delete=models.CASCADE)
     issue = ForeignKey(Issue, on_delete=models.CASCADE)
-
-    def is_user_author(self, user):
-        return self.issue.project.author == user
