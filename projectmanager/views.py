@@ -106,6 +106,7 @@ class IssueListCreateView(ListCreateAPIView):
 class IssueUpdateDeleteView(RetrieveUpdateDestroyAPIView):
     serializer_class = IssueSerializer
     permission_classes = (IsAuthor,)
+    http_method_names = ['post', 'put', 'patch', 'delete']
 
     def get_queryset(self):
         issue_id = self.kwargs["pk"]
@@ -142,4 +143,23 @@ class CommentListCreateView(ListCreateAPIView):
         serializer.save(
             issue_id=issue_id,
             author=self.request.user,
+        )
+
+
+class CommentRetrieveUpdateDeleteView(RetrieveUpdateDestroyAPIView):
+    serializer_class = CommentCreateSerializer
+    detail_serializer_class = CommentSerializer
+    permission_classes = (IsAuthorOrContributorReadOnly,)
+
+    def get_serializer_class(self):
+        if self.request.method.lower() == 'get':
+            return self.detail_serializer_class
+        return super().get_serializer_class()
+
+    def get_queryset(self):
+        comment_id = self.kwargs["pk"]
+        issue_id = self.kwargs["issue_id"]
+        return Comment.objects.filter(
+            id=comment_id,
+            issue_id=issue_id,
         )

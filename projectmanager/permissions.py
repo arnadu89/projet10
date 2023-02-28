@@ -13,9 +13,9 @@ class IsProjectContributor(permissions.IsAuthenticated):
         return False
 
     def has_object_permission(self, request, view, obj):
-        project_id = view.kwargs["pk"]
-        if not request.user.is_project_contributor(project_id):
-            return False
+        # project_id = view.kwargs["pk"]
+        # if not request.user.is_project_contributor(project_id):
+        #     return False
 
         if request.method in permissions.SAFE_METHODS:
             return True
@@ -27,6 +27,15 @@ class IsAuthor(permissions.IsAuthenticated):
         #     return True
 
         return obj.author == request.user
+
+
+class IsAuthorOrContributorReadOnly(IsProjectContributor):
+    def has_object_permission(self, request, view, obj):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+
+        return obj.author == request.user
+
 
 
 class IsProjectAuthor(permissions.IsAuthenticated):

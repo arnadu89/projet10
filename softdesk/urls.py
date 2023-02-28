@@ -17,5 +17,5 @@ urlpatterns = [
     path('projects/<int:project_id>/issues/', views.IssueListCreateView.as_view(), name='issues_createlist'),
     path('projects/<int:project_id>/issues/<int:pk>', views.IssueUpdateDeleteView.as_view(), name='issues_updatedelete'),
     path('projects/<int:project_id>/issues/<int:issue_id>/comments/', views.CommentListCreateView.as_view(), name='comments_createlist'),
-    # path('projects/<int:project_id>/issues/<int:issue_id>/comments/<int:pk>', views.CommentRetrieveUpdateDeleteView.as_view(), name='comments_retrieveupdatedelete'),
+    path('projects/<int:project_id>/issues/<int:issue_id>/comments/<int:pk>/', views.CommentRetrieveUpdateDeleteView.as_view(), name='comments_retrieveupdatedelete'),
 ]
