@@ -39,8 +39,18 @@ class ProjectListCreateView(ListCreateAPIView):
 
 class ProjectRetrieveUpdateDeleteView(RetrieveUpdateDestroyAPIView):
     serializer_class = ProjectListSerializer
+    update_serializer_class = ProjectUpdateSerializer
     queryset = Project.objects.all()
-    permission_classes = (IsAuthor, IsProjectContributor)
+    permission_classes = (IsAuthorOrContributorReadOnly,)
+
+    def dispatch(self, request, *args, **kwargs):
+        kwargs['project_id'] = kwargs['pk']
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_serializer_class(self):
+        if self.request.method.lower() in ('patch', 'put'):
+            return self.update_serializer_class
+        return super().get_serializer_class()
 
 
 class ProjectContributorListCreateView(ListCreateAPIView):
@@ -163,3 +173,10 @@ class CommentRetrieveUpdateDeleteView(RetrieveUpdateDestroyAPIView):
             id=comment_id,
             issue_id=issue_id,
         )
+
+    def retrieve(self, request, *args, **kwargs):
+        """Validate coherence between issue id and project id with serializer"""
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        serializer.validate(None)
+        return Response(serializer.data)

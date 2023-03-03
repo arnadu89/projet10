@@ -5,20 +5,16 @@ from django.db.models import CharField, DateTimeField, ForeignKey, Q
 
 class User(AbstractUser):
     def is_project_contributor(self, project_id):
-        if Project.objects.filter(
+        return Project.objects.filter(
             Q(contributor__user=self) | Q(author=self),
             id=project_id
-        ):
-            return True
-        return False
+        ).exists()
 
     def is_project_author(self, project_id):
-        if Project.objects.filter(
+        return Project.objects.filter(
             author=self,
             id=project_id
-        ):
-            return True
-        return False
+        ).exists()
 
 
 class Project(models.Model):

@@ -1,4 +1,4 @@
-from rest_framework.serializers import ModelSerializer
+from rest_framework.serializers import ModelSerializer, ValidationError
 from projectmanager.models import Contributor, Issue, Project, User, Comment
 
 
@@ -19,6 +19,16 @@ class ProjectListSerializer(ModelSerializer):
     class Meta:
         model = Project
         fields = '__all__'
+
+
+class ProjectUpdateSerializer(ModelSerializer):
+    class Meta:
+        model = Project
+        fields = (
+            'title',
+            'description',
+            'type',
+        )
 
 
 class ProjectCreateSerializer(ModelSerializer):
@@ -56,8 +66,22 @@ class CommentSerializer(ModelSerializer):
         model = Comment
         fields = '__all__'
 
+    def validate(self, attrs):
+        """Check that the Issue id is coherent with project id"""
+        project_id = self.context['request'].parser_context['kwargs']["project_id"]
+        issue_id = self.context['request'].parser_context['kwargs']["issue_id"]
+        if not Issue.objects.filter(
+                project_id=project_id,
+                id=issue_id,
+        ).exists():
+            raise ValidationError(
+                f"The issue with id {issue_id} is not associated with the project with id {project_id}"
+            )
 
-class CommentCreateSerializer(ModelSerializer):
+        return attrs
+
+
+class CommentCreateSerializer(CommentSerializer):
     class Meta:
         model = Comment
         fields = ['description']
