@@ -13,7 +13,7 @@ from projectmanager.permissions import *
 
 
 class RegisterView(CreateAPIView):
-    serializer_class = UserSerializer
+    serializer_class = UserCreateSerializer
 
 
 class ProjectListCreateView(ListCreateAPIView):
@@ -25,7 +25,7 @@ class ProjectListCreateView(ListCreateAPIView):
         user = self.request.user
         queryset = Project.objects.filter(
             Q(contributor__user=user) | Q(author=user)
-        )
+        ).distinct()
         return queryset
 
     def get_serializer_class(self):
@@ -54,7 +54,7 @@ class ProjectRetrieveUpdateDeleteView(RetrieveUpdateDestroyAPIView):
 
 
 class ProjectContributorListCreateView(ListCreateAPIView):
-    serializer_class = ContributorSerializer
+    serializer_class = ContributorCreateSerializer
     list_serializer_class = ContributorListUserSerializer
     permission_classes = (IsProjectAuthor,)
 

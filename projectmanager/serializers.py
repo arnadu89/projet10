@@ -2,7 +2,7 @@ from rest_framework.serializers import ModelSerializer, ValidationError
 from projectmanager.models import Contributor, Issue, Project, User, Comment
 
 
-class UserSerializer(ModelSerializer):
+class UserCreateSerializer(ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', "password"]
@@ -15,10 +15,33 @@ class UserSerializer(ModelSerializer):
         return user
 
 
-class ProjectListSerializer(ModelSerializer):
+class UserSimpleSerializer(ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username']
+
+
+class ContributorSerializer(ModelSerializer):
+    user = UserSimpleSerializer()
+
+    class Meta:
+        model = Contributor
+        fields = ['user']
+
+
+class ProjectSimpleSerializer(ModelSerializer):
     class Meta:
         model = Project
-        fields = '__all__'
+        fields = ['id', 'title']
+
+
+class ProjectListSerializer(ModelSerializer):
+    author = UserSimpleSerializer()
+    contributors = ContributorSerializer(many=True, source="contributor_set")
+
+    class Meta:
+        model = Project
+        fields = ['id', 'title', 'description', 'type', 'author', 'contributors']
 
 
 class ProjectUpdateSerializer(ModelSerializer):
@@ -37,22 +60,45 @@ class ProjectCreateSerializer(ModelSerializer):
         fields = ['title', 'description', 'type']
 
 
-class ContributorSerializer(ModelSerializer):
+class ContributorCreateSerializer(ModelSerializer):
     class Meta:
         model = Contributor
-        fields = ['user', 'role']
+        fields = ['user']
 
 
 class ContributorListUserSerializer(ModelSerializer):
+    user = UserSimpleSerializer()
+
     class Meta:
         model = Contributor
         fields = ['user']
 
 
 class IssueSerializer(ModelSerializer):
+    project = ProjectSimpleSerializer()
+    author = UserSimpleSerializer()
+    assignee = UserSimpleSerializer()
+
     class Meta:
         model = Issue
-        fields = '__all__'
+        fields = [
+            'id',
+            'title',
+            'description',
+            'tag',
+            'priority',
+            'status',
+            'created_time',
+            'author',
+            'assignee',
+            'project'
+        ]
+
+
+class IssueSimpleSerializer(ModelSerializer):
+    class Meta:
+        model = Issue
+        fields = ['id', 'title']
 
 
 class IssueCreateSerializer(ModelSerializer):
@@ -62,9 +108,18 @@ class IssueCreateSerializer(ModelSerializer):
 
 
 class CommentSerializer(ModelSerializer):
+    author = UserSimpleSerializer()
+    issue = IssueSimpleSerializer()
+
     class Meta:
         model = Comment
-        fields = '__all__'
+        fields = [
+            'id',
+            'description',
+            'created_time',
+            'author',
+            'issue',
+        ]
 
     def validate(self, attrs):
         """Check that the Issue id is coherent with project id"""
